@@ -2131,6 +2131,131 @@ func TestZero(t *testing.T) {
 	for _, test := range nonZeros {
 		False(t, Zero(mockT, test, "%#v is not the %T zero value", test, test))
 	}
+
+	// error messages validation
+	tests := []struct {
+		name           string
+		value          interface{}
+		expectedResult bool
+		expectedErrMsg string
+	}{
+		{
+			name:           "nil",
+			value:          nil,
+			expectedResult: true,
+		},
+		{
+			name:           "false",
+			value:          false,
+			expectedResult: true,
+		},
+		{
+			name:           "empty string is zero",
+			value:          "",
+			expectedResult: true,
+		},
+		{
+			name:           "float 0 is zero",
+			value:          0.0,
+			expectedResult: true,
+		},
+		{
+			name:           "untyped 0 is zero",
+			value:          0,
+			expectedResult: true,
+		},
+		{
+			name:           "typed zero is zero",
+			value:          int8(0),
+			expectedResult: true,
+		},
+
+		// These are obvious non-zero values
+		{
+			name:           "Non-zero int value is not zero",
+			value:          1,
+			expectedResult: false,
+			expectedErrMsg: "Should be zero, but was 1\n",
+		},
+		{
+			name:           "Non-empty string is not zero",
+			value:          "something",
+			expectedResult: false,
+			expectedErrMsg: "Should be zero, but was something\n",
+		},
+		{
+			name:           "true value is not zero",
+			value:          true,
+			expectedResult: false,
+			expectedErrMsg: "Should be zero, but was true\n",
+		},
+
+		// slices
+		//
+		// only nil is the zero value of the slice type
+		// empty slices are not considered zero
+		{
+			name:           "nil slice is zero",
+			value:          []int(nil),
+			expectedResult: true,
+		},
+		{
+			name:           "empty slice is not zero",
+			value:          []int{},
+			expectedResult: false,
+			expectedErrMsg: "Should be zero, but was []\n",
+		},
+		{
+			name:           "non-empty slice is not zero",
+			value:          []int{1},
+			expectedResult: false,
+			expectedErrMsg: "Should be zero, but was [1]\n",
+		},
+
+		// maps
+		//
+		// only nil is the zero value of the map type
+		// empty maps are not considered zero
+		{
+			name:           "nil map is zero",
+			value:          map[string]string(nil),
+			expectedResult: true,
+		},
+		{
+			name:           "empty map is not zero",
+			value:          map[string]string{},
+			expectedResult: false,
+			expectedErrMsg: "Should be zero, but was map[]\n",
+		},
+		{
+			name:           "non-empty map is not zero",
+			value:          map[string]string{"key": "value"},
+			expectedResult: false,
+			expectedErrMsg: "Should be zero, but was map[key:value]\n",
+		},
+
+		// struct
+		{
+			name:           "empty struct is zero",
+			value:          struct{ a int }{},
+			expectedResult: true,
+		},
+		{
+			name:           "non-empty struct is not zero",
+			value:          struct{ a int }{a: 1},
+			expectedResult: false,
+			expectedErrMsg: "Should be zero, but was {1}\n",
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			mockCT := new(captureTestingT)
+			res := Zero(mockCT, tt.value)
+			mockCT.checkResultAndErrMsg(t, res, tt.expectedResult, tt.expectedErrMsg)
+		})
+	}
 }
 
 func TestNotZero(t *testing.T) {
@@ -2142,6 +2267,121 @@ func TestNotZero(t *testing.T) {
 
 	for _, test := range nonZeros {
 		True(t, NotZero(mockT, test, "%#v is not the %T zero value", test, test))
+	}
+
+	// error messages validation
+	tests := []struct {
+		name           string
+		value          interface{}
+		expectedResult bool
+		expectedErrMsg string
+	}{
+		{
+			name:           "empty string",
+			value:          "",
+			expectedResult: false,
+			expectedErrMsg: "Should not be zero, but was \n",
+		},
+		{
+			name:           "nil value",
+			value:          nil,
+			expectedResult: false,
+			expectedErrMsg: "Should not be zero, but was <nil>\n",
+		},
+		{
+			name:           "false value",
+			value:          false,
+			expectedResult: false,
+			expectedErrMsg: "Should not be zero, but was false\n",
+		},
+
+		{
+			name:           "float 0",
+			value:          0.0,
+			expectedResult: false,
+			expectedErrMsg: "Should not be zero, but was 0\n",
+		},
+		{
+			name:           "untyped 0",
+			value:          0,
+			expectedResult: false,
+			expectedErrMsg: "Should not be zero, but was 0\n",
+		},
+		{
+			name:           "typed zero",
+			value:          int8(0),
+			expectedResult: false,
+			expectedErrMsg: "Should not be zero, but was 0\n",
+		},
+
+		// obvious non-zero values
+		{
+			name:           "non-zero int value",
+			value:          1,
+			expectedResult: true,
+			expectedErrMsg: "Should not be zero, but was 1\n",
+		},
+		{
+			name:           "Non-zero int8 value",
+			value:          int8(1),
+			expectedResult: true,
+		},
+		{
+			name:           "True value",
+			value:          true,
+			expectedResult: true,
+		},
+
+		// slices
+		//
+		// only nil is the zero value of the slice type
+		// empty slices are not considered zero
+		{
+			name:           "nil slice",
+			value:          []int(nil),
+			expectedResult: false,
+			expectedErrMsg: "Should not be zero, but was []\n",
+		},
+		{
+			name:           "empty slice",
+			value:          []int{},
+			expectedResult: true,
+		},
+		{
+			name:           "non-empty slice",
+			value:          []int{1},
+			expectedResult: true,
+		},
+
+		// maps
+		//
+		// only nil is the zero value of the map type
+		// empty maps are not considered zero
+		{
+			name:           "nil map",
+			value:          map[string]string(nil),
+			expectedResult: false,
+			expectedErrMsg: "Should not be zero, but was map[]\n",
+		},
+		{
+			name:           "empty map",
+			value:          map[string]string{},
+			expectedResult: true,
+		},
+		{
+			name:           "non-empty map",
+			value:          map[string]string{"key": "value"},
+			expectedResult: true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			mockCT := new(captureTestingT)
+			res := NotZero(mockCT, tt.value)
+			mockCT.checkResultAndErrMsg(t, res, tt.expectedResult, tt.expectedErrMsg)
+		})
 	}
 }
 
