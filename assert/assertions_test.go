@@ -3036,6 +3036,30 @@ Diff:
 		time.Date(2020, 9, 25, 0, 0, 0, 0, time.UTC),
 	)
 	Equal(t, expected, actual)
+
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
+@@ -1,3 +1,3 @@
+ (assert.someStruct) {
+- t: (time.Time) 2020-09-24 00:00:00 +0000 UTC
++ t: (time.Time) 2020-09-25 00:00:00 +0000 UTC
+ }
+`
+
+	type someStruct struct {
+		t time.Time
+	}
+
+	actual = diff(
+		someStruct{t: time.Date(2020, 9, 24, 0, 0, 0, 0, time.UTC)},
+		someStruct{t: time.Date(2020, 9, 25, 0, 0, 0, 0, time.UTC)},
+	)
+
+	Equal(t, expected, actual)
+
 }
 
 func TestTimeEqualityErrorFormatting(t *testing.T) {

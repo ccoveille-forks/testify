@@ -271,6 +271,12 @@ func canSortSimply(kind reflect.Kind) bool {
 	case reflect.Array:
 		return true
 	}
+
+	if kind == reflect.Struct && kind.String() == "time.Time" {
+		// time.Time values can be sorted directly, as it implements [sort.Interface].
+		return true
+	}
+
 	return false
 }
 
